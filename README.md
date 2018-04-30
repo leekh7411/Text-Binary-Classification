@@ -1,8 +1,8 @@
 # Text-Binary-Classification
-#Tensorflow #Sample Data &amp; referenced from Naver AI-Hackaton 2018 
+##Tensorflow #Sample Data &amp; referenced from Naver AI-Hackaton 2018 
 - Final score : accuracy 74.093 (24/38)
 
-# Model Features
+## Model Features
 - text tokenize using RegexTokenizer(from https://github.com/lovit/soynlp/)
 - vectorize gensim-word2vec 
 - extracts features each sentence using CNN layers
