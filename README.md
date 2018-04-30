@@ -1,5 +1,5 @@
 # Text-Binary-Classification
-#Referenced from Naver AI-Hackaton 2018
+#Referenced from Naver AI-Hackaton 2018(https://github.com/naver/ai-hackathon-2018)
 #Tensorflow
 - Final score : accuracy 74.093 (24/38)
 
