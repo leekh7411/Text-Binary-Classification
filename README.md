@@ -4,7 +4,7 @@
 - Final score : accuracy 74.093 (24/38)
 
 ## Model Features
-- text tokenize using RegexTokenizer(from https://github.com/lovit/soynlp/)
+- text tokenize using tokenizer Twitter 
 - vectorize gensim-word2vec 
 - extracts features each sentence using CNN layers
 - extracts features LSTM layer after concats upon two features
