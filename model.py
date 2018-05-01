@@ -1,27 +1,27 @@
 import tensorflow as tf
 import numpy as np
 import os
-from config import get_config
 class TextBinaryClf():
-    def __init__(self):
+    def __init__(self,config):
         self.sigle_model = None
-        self.cfg = get_config()
+        self.cfg = config
         self.fin_out_size = 1
         self.build_ensemble_model()
         self.build_loss_and_train_step()
+        self.lr = self.cfg.lr
 
     def build_ensemble_model(self):
-        self.x1 = tf.placeholder(tf.int32, [None, self.cfg.strmaxlen], name="x1-input")
-        self.x2 = tf.placeholder(tf.int32, [None, self.cfg.strmaxlen], name="x2-input")
+        self.x1 = tf.placeholder(tf.float32, [None, self.cfg.strmaxlen,self.cfg.w2v_size,1], name="x1-input")
+        self.x2 = tf.placeholder(tf.float32, [None, self.cfg.strmaxlen,self.cfg.w2v_size,1], name="x2-input")
         self.y  = tf.placeholder(tf.float32, [None, self.fin_out_size], name="y-output")
         self.ensemble_models = []
         for i in range(3):
             self.ensemble_models.append(self.binary_input_cnn_rnn_model(self.x1, self.x2, char_size=251, embedding_size=8))
 
     def binary_input_cnn_rnn_model(self, input1, input2, char_size, embedding_size):
-        expand1, expand2 = self.embedding_layer(input1, input2, char_size, embedding_size)
-        conv1 = self.cnn_layer(expand1, filter=[4, 4], filter_size=16, index=1)
-        conv2 = self.cnn_layer(expand2, filter=[4, 4], filter_size=16, index=2)
+        #expand1, expand2 = self.embedding_layer(input1, input2, char_size, embedding_size)
+        conv1 = self.cnn_layer(input1, filter=[4, 4], filter_size=16, index=1)
+        conv2 = self.cnn_layer(input2, filter=[4, 4], filter_size=16, index=2)
         conv = tf.concat([conv1, conv2], axis=3)
         conv = self.cnn_layer(conv, [3, 3], 32, 0)
         flat = tf.layers.flatten(conv)
@@ -79,7 +79,7 @@ class TextBinaryClf():
         return model
 
     def build_loss_and_train_step(self):
-        self.lr_tf = tf.placeholder(dtype=float,name="lr")
+        self.lr_tf = tf.placeholder(dtype=tf.float32,name="lr")
         with tf.name_scope("loss-optimizer"):
             # Binary Cross Entropy
             def binary_cross_entropy_loss(y_, output):
@@ -114,21 +114,25 @@ class TextBinaryClf():
 
     ''' for training '''
 
-    def train(self,sess,data1,data2,labels,lr):
+    def train(self,sess,data1,data2,labels):
         ensemble_loss = 0.
         for train, bce in zip(self.train_steps, self.bce_loss):
             _, loss = sess.run([train, bce],
                                feed_dict={
                                    self.x1: data1, self.x2: data2,
                                    self.y : labels,
-                                   self.lr_tf: lr})
+                                   self.lr_tf: self.lr})
             ensemble_loss += loss
         ensemble_loss /= len(self.bce_loss)
         return ensemble_loss
 
+    def lr_decay(self):
+        self.lr = self.lr * self.cfg.decay
+
     ''' for predict input data '''
 
-    def get_accuracy_tensor(self,sess,pred,labels):
+    def predict_accuracy(self,sess,data1,data2,labels):
+        pred = self.predict(sess,data1,data2)
         is_correct = tf.equal(pred, labels)
         accuracy = tf.reduce_mean(tf.cast(is_correct, tf.float32))
         return sess.run(accuracy)

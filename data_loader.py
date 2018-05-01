@@ -29,13 +29,13 @@ class KinQueryDataset:
     """
         지식인 데이터를 읽어서, tuple (데이터, 레이블)의 형태로 리턴하는 파이썬 오브젝트 입니다.
     """
-    def __init__(self, dataset_path: str, config):
+    def __init__(self, config):
 
         self.config = config
 
         # 데이터, 레이블 각각의 경로
-        queries_path = os.path.join(dataset_path, 'train', 'train_data')
-        labels_path = os.path.join(dataset_path, 'train', 'train_label')
+        queries_path = os.path.join(self.config.data_path, 'train', 'train_data')
+        labels_path = os.path.join(self.config.data_path , 'train', 'train_label')
 
         # 지식인 데이터를 읽고 preprocess까지 진행합니다
         self.test_idx = -1
@@ -68,16 +68,7 @@ class KinQueryDataset:
 
 
 
-    def _batch_loader(self,iterable, n=1):
-        """
-        데이터를 배치 사이즈만큼 잘라서 보내주는 함수입니다. PyTorch의 DataLoader와 같은 역할을 합니다
-        :param iterable: 데이터 list, 혹은 다른 포맷
-        :param n: 배치 사이즈
-        :return:
-        """
-        length = len(iterable)
-        for n_idx in range(0, length, n):
-            yield iterable[n_idx:min(n_idx + n, length)]
+
 
 
 
@@ -147,6 +138,17 @@ class KinQueryDataset:
         return vq1_train,vq1_test,vq2_train,vq2_test
 
 
+def _batch_loader(iterable, n=1):
+    """
+    데이터를 배치 사이즈만큼 잘라서 보내주는 함수입니다. PyTorch의 DataLoader와 같은 역할을 합니다
+    :param iterable: 데이터 list, 혹은 다른 포맷
+    :param n: 배치 사이즈
+    :return:
+    """
+    length = len(iterable)
+    for n_idx in range(0, length, n):
+        yield iterable[n_idx:min(n_idx + n, length)]
+
 # for testing
 #config = get_config()
-#dataset = KinQueryDataset(LOCAL_DATASET_PATH,config)
+#dataset = KinQueryDataset(config)
